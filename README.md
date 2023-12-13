@@ -1,4 +1,4 @@
-# Music Transformer
+# Music Theory in Music Generation
 Tested on PyTorch 1.13.0
 
 ## About
