@@ -63,7 +63,7 @@ def main():
 
     model = MusicTransformer(n_layers=args.n_layers, num_heads=args.num_heads,
                 d_model=args.d_model, dim_feedforward=args.dim_feedforward,
-                max_sequence=args.max_sequence, rpr=args.rpr).to(get_device())
+                max_sequence=args.max_sequence, rpr=args.rpr, cnn=args.cnn).to(get_device())
 
     model.load_state_dict(torch.load(args.model_weights))
 

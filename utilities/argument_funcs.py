@@ -32,6 +32,7 @@ def parse_train_args():
     parser.add_argument("-epochs", type=int, default=100, help="Number of epochs to use")
 
     parser.add_argument("--rpr", action="store_true", help="Use a modified Transformer for Relative Position Representations")
+    parser.add_argument("--cnn", action="store_true", help="Use a CNN augmented Transformer")
     parser.add_argument("-max_sequence", type=int, default=2048, help="Maximum midi sequence to consider")
     parser.add_argument("-n_layers", type=int, default=6, help="Number of decoder layers to use")
     parser.add_argument("-num_heads", type=int, default=8, help="Number of heads to use for multi-head attention")
@@ -72,6 +73,7 @@ def print_train_args(args):
     print("epochs:", args.epochs)
     print("")
     print("rpr:", args.rpr)
+    print("cnn:", args.rpr)
     print("max_sequence:", args.max_sequence)
     print("n_layers:", args.n_layers)
     print("num_heads:", args.num_heads)
@@ -102,6 +104,7 @@ def parse_eval_args():
     parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
 
     parser.add_argument("--rpr", action="store_true", help="Use a modified Transformer for Relative Position Representations")
+    parser.add_argument("--cnn", action="store_true", help="Use a CNN augmented Transformer")
     parser.add_argument("-max_sequence", type=int, default=2048, help="Maximum midi sequence to consider in the model")
     parser.add_argument("-n_layers", type=int, default=6, help="Number of decoder layers to use")
     parser.add_argument("-num_heads", type=int, default=8, help="Number of heads to use for multi-head attention")
@@ -130,6 +133,7 @@ def print_eval_args(args):
     print("batch_size:", args.batch_size)
     print("")
     print("rpr:", args.rpr)
+    print("cnn:", args.rpr)
     print("max_sequence:", args.max_sequence)
     print("n_layers:", args.n_layers)
     print("num_heads:", args.num_heads)
@@ -162,6 +166,7 @@ def parse_generate_args():
     parser.add_argument("-beam", type=int, default=0, help="Beam search k. 0 for random probability sample and 1 for greedy")
 
     parser.add_argument("--rpr", action="store_true", help="Use a modified Transformer for Relative Position Representations")
+    parser.add_argument("--cnn", action="store_true", help="Use a CNN augmented Transformer")
     parser.add_argument("-max_sequence", type=int, default=2048, help="Maximum midi sequence to consider")
     parser.add_argument("-n_layers", type=int, default=6, help="Number of decoder layers to use")
     parser.add_argument("-num_heads", type=int, default=8, help="Number of heads to use for multi-head attention")
@@ -193,6 +198,7 @@ def print_generate_args(args):
     print("beam:", args.beam)
     print("")
     print("rpr:", args.rpr)
+    print("cnn:", args.rpr)
     print("max_sequence:", args.max_sequence)
     print("n_layers:", args.n_layers)
     print("num_heads:", args.num_heads)
@@ -215,6 +221,7 @@ def write_model_params(args, output_file):
     o_stream = open(output_file, "w")
 
     o_stream.write("rpr: " + str(args.rpr) + "\n")
+    o_stream.write("cnn: " + str(args.cnn) + "\n")
     o_stream.write("lr: " + str(args.lr) + "\n")
     o_stream.write("ce_smoothing: " + str(args.ce_smoothing) + "\n")
     o_stream.write("batch_size: " + str(args.batch_size) + "\n")

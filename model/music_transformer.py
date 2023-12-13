@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn.modules.normalization import LayerNorm
 import random
 
@@ -8,6 +9,7 @@ from utilities.device import get_device
 
 from .positional_encoding import PositionalEncoding
 from .rpr import TransformerEncoderRPR, TransformerEncoderLayerRPR
+from .music_cnn import MusicCNN
 
 
 # MusicTransformer
@@ -29,7 +31,7 @@ class MusicTransformer(nn.Module):
     """
 
     def __init__(self, n_layers=6, num_heads=8, d_model=512, dim_feedforward=1024,
-                 dropout=0.1, max_sequence=2048, rpr=False):
+                 dropout=0.1, max_sequence=2048, rpr=False, cnn=False):
         super(MusicTransformer, self).__init__()
 
         self.dummy      = DummyDecoder()
@@ -41,6 +43,7 @@ class MusicTransformer(nn.Module):
         self.dropout    = dropout
         self.max_seq    = max_sequence
         self.rpr        = rpr
+        self.cnn        = cnn
 
         # Input embedding
         self.embedding = nn.Embedding(VOCAB_SIZE, self.d_model)
@@ -48,6 +51,12 @@ class MusicTransformer(nn.Module):
         # Positional encoding
         self.positional_encoding = PositionalEncoding(self.d_model, self.dropout, self.max_seq)
 
+        if self.cnn:
+            self.cnn_on = MusicCNN(9, 7)
+            self.cnn_off = MusicCNN(9, 7)
+            self.cnn_vel = MusicCNN(5, 3)
+            self.cnn_ts = MusicCNN(5, 3)
+        
         # Base transformer
         if(not self.rpr):
             # To make a decoder-only transformer we need to use masked encoder layers
@@ -89,6 +98,22 @@ class MusicTransformer(nn.Module):
         else:
             mask = None
 
+
+        if self.cnn:
+            x_hot = F.one_hot(x, VOCAB_SIZE).float()
+            x_on = x_hot[:, :, :128].unsqueeze(1)
+            x_off = x_hot[:, :, 128:256].unsqueeze(1)
+            x_ts = x_hot[:, :, 256:288].unsqueeze(1)
+            x_vel = x_hot[:, :, 288:388].unsqueeze(1)
+            x_pad = x_hot[:, :, 388:].unsqueeze(1)
+        
+            x_on = self.cnn_on(x_on)
+            x_off = self.cnn_off(x_off)
+            x_ts = self.cnn_ts(x_ts)
+            x_vel = self.cnn_vel(x_vel)
+        
+            cnn_out = torch.cat((x_on, x_off, x_ts, x_vel, x_pad), dim=3).squeeze(1)
+        
         x = self.embedding(x)
 
         # Input shape is (max_seq, batch_size, d_model)
@@ -103,7 +128,10 @@ class MusicTransformer(nn.Module):
         # Back to (batch_size, max_seq, d_model)
         x_out = x_out.permute(1,0,2)
 
-        y = self.Wout(x_out)
+        if self.cnn:
+            y = self.Wout(x_out) + cnn_out
+        else:
+            y = self.Wout(x_out)
         # y = self.softmax(y)
 
         del mask
